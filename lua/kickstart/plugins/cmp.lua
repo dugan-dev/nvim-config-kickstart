@@ -25,6 +25,8 @@ return {
               require('luasnip.loaders.from_vscode').lazy_load()
             end,
           },
+          'tailwind-tools',
+          'onsails/lspkind-nvim',
         },
       },
       'saadparwaiz1/cmp_luasnip',
@@ -46,6 +48,11 @@ return {
           expand = function(args)
             luasnip.lsp_expand(args.body)
           end,
+        },
+        formatting = {
+          format = require('lspkind').cmp_format {
+            before = require('tailwind-tools.cmp').lspkind_format,
+          },
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
 
