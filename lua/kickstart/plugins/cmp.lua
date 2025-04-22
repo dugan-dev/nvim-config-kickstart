@@ -52,6 +52,10 @@ return {
         formatting = {
           format = require('lspkind').cmp_format {
             before = require('tailwind-tools.cmp').lspkind_format,
+            mode = 'symbol',
+            maxwidth = 50,
+            ellipsis_char = '...',
+            symbol_map = { Codeium = '' },
           },
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
@@ -117,6 +121,7 @@ return {
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'codeium' },
         },
       }
     end,
