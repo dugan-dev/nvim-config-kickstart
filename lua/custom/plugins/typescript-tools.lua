@@ -1,6 +1,7 @@
 return {
   'pmizio/typescript-tools.nvim',
   dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+  ft = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
   opts = {},
   config = function()
     -- Set up keymaps
@@ -16,12 +17,19 @@ return {
     local api = require 'typescript-tools.api'
 
     require('typescript-tools').setup {
+      -- Point to tsserver from vscode-langservers-extracted
+      tsserver_path = '/opt/homebrew/Cellar/vscode-langservers-extracted/4.10.0/libexec/lib/node_modules/vscode-langservers-extracted/node_modules/typescript/bin/tsserver',
       handlers = {
         ['textDocument/publishDiagnostics'] = api.filter_diagnostics {
           -- Diagnostic code to ignore
           71007,
         },
       },
+      settings = {
+        -- Allow other LSP servers (like Tailwind) to also attach
+        separate_diagnostic_server = true,
+        publish_diagnostic_on = "insert_leave",
+      }
     }
   end,
 }

@@ -181,7 +181,41 @@ return {
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         eslint_d = {},
-        tailwindcss = {},
+        tailwindcss = {
+          filetypes = {
+            'html',
+            'css',
+            'scss',
+            'javascript',
+            'javascriptreact',
+            'typescript',
+            'typescriptreact',
+            'vue',
+            'svelte',
+            'astro',
+            'php',
+            'markdown',
+            'mdx'
+          },
+          settings = {
+            tailwindCSS = {
+              experimental = {
+                classRegex = {
+                  "tw`([^`]*)",
+                  "tw=\"([^\"]*)",
+                  "tw={\"([^\"}]*)",
+                  "tw\\.\\w+`([^`]*)",
+                  "tw\\(.*?\\)`([^`]*)",
+                },
+              },
+              includeLanguages = {
+                typescript = "javascript",
+                typescriptreact = "javascript",
+                ["typescript.tsx"] = "javascript",
+              },
+            },
+          },
+        },
         prismals = {},
         prettierd = {},
         lua_ls = {
@@ -226,6 +260,51 @@ return {
           end,
         },
       }
+
+      -- Ensure Tailwind CSS LSP attaches to TypeScript files alongside typescript-tools
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = { "typescriptreact", "typescript", "javascriptreact", "javascript" },
+        callback = function()
+          -- Small delay to let typescript-tools attach first
+          vim.defer_fn(function()
+            local clients = vim.lsp.get_clients({ bufnr = 0, name = "tailwindcss" })
+            if #clients == 0 then
+              -- Check if we have a tailwind config file in the project
+              local root_dir = vim.fs.find({ "tailwind.config.js", "tailwind.config.ts", "tailwind.config.cjs", "package.json" }, { upward = true })[1]
+              if root_dir then
+                root_dir = vim.fs.dirname(root_dir)
+                -- Manually start Tailwind LSP
+                vim.lsp.start({
+                  name = "tailwindcss",
+                  cmd = { vim.fn.expand("~/.local/share/nvim/mason/bin/tailwindcss-language-server"), "--stdio" },
+                  root_dir = root_dir,
+                  filetypes = { "html", "css", "scss", "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
+                  settings = {
+                    tailwindCSS = {
+                      experimental = {
+                        classRegex = {
+                          "tw`([^`]*)",
+                          "tw=\"([^\"]*)",
+                          "tw={\"([^\"}]*)",
+                          "tw\\.\\w+`([^`]*)",
+                          "tw\\(.*?\\)`([^`]*)",
+                          'class[:]\\s*"([^"]*)"',
+                          'className[:]\\s*"([^"]*)"',
+                        },
+                      },
+                      includeLanguages = {
+                        typescript = "javascript",
+                        typescriptreact = "javascript",
+                        ["typescript.tsx"] = "javascript",
+                      },
+                    },
+                  },
+                })
+              end
+            end
+          end, 100)
+        end,
+      })
     end,
   },
 }
